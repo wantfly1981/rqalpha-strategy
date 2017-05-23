@@ -232,24 +232,11 @@ def after_trading(context):
 
 # 选取指定数目的小市值股票，再进行过滤，最终挑选指定可买数目的股票
 def pick_stocks(context, bar_dict):
-    q = query()
 
-    if g.pick_by_pe:
-        q = q.filter(
-            fundamentals.eod_derivative_indicator.pe_ratio > g.min_pe,
-            fundamentals.eod_derivative_indicator.pe_ratio < g.max_pe
-        )
-
-    if g.pick_by_eps:
-        q = q.filter(
-            fundamentals.financial_indicator.earnings_per_share > g.min_eps,
-            # valuation.turnover_ratio > 3
-        )
-
-    q = q.order_by(fundamentals.eod_derivative_indicator.market_cap.asc()) \
-        .limit(g.pick_stock_count)
-
-    df = get_fundamentals(q)
+    df = get_fundamentals(query()
+                          .filter(fundamentals.financial_indicator.earnings_per_share > g.min_eps,)
+                          .order_by(fundamentals.eod_derivative_indicator.market_cap.asc())
+                          .limit(g.pick_stock_count))
 
     stock_list = list(df.columns.values)
 
@@ -633,8 +620,8 @@ def get_stop_profit_threshold(security, n=3):
 # n 默认20日
 def get_growth_rate(security, n=20):
     lc = get_close_price(security, n)
-    # c = data[security].close
-    c = get_close_price(security, 1, '1m')
+    #c = get_close_price(security, 1, '1m')
+    c = get_close_price(security, 1)
 
     if not isnan(lc) and not isnan(c) and lc != 0:
         return (c - lc) / lc
@@ -655,8 +642,8 @@ def open_position(security, value):
     order = order_target_value_(security, value)
     if order != None and order.filled_quantity > 0:
         # 报单成功并有成交则初始化最高价
-        cur_price = get_close_price(security, 1, '1m')
-        g.last_high[security] = cur_price
+        #cur_price = get_close_price(security, 1, '1m')
+        g.last_high[security] = order.avg_price
         return True
     return False
 

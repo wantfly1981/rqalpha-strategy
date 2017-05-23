@@ -22,6 +22,7 @@
 日期：2016.11.15
 作者：Morningstar
 '''
+from rqalpha.api import *
 import pandas as pd
 import numpy as np
 import tradestat
